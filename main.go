@@ -1,14 +1,15 @@
 package main
 
 import (
+	"./handler"
 	"github.com/gin-gonic/gin"
-	"github.com/taniwhy/golang-jwt-auth-test/handler"
 )
 
 func main() {
 	r := gin.Default()
 
 	r.POST("/tokenAuth", handler.LoginHandler)
+	r.GET("/tokenAuthenticate", handler.RequireTokenAuthenticationHandler)
 
-	r.Run(":8000")
+	r.Run(":8080")
 }

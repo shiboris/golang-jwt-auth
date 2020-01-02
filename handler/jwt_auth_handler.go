@@ -4,10 +4,10 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,36 +16,57 @@ var (
 	signKey   *rsa.PrivateKey
 )
 
+//JSON : 受け取るJSON
+type JSON struct {
+	ID string `json:"id" binding:"required"`
+}
+
 // LoginHandler : JWTの発行
 func LoginHandler(c *gin.Context) {
 
-	userName := c.Param("user_name")
-	passWord := c.Param("pass_word")
-
-	signBytes, err := ioutil.ReadFile("./demo.rsa.pkcs8")
+	keyData, err := ioutil.ReadFile("./secret.key")
 	if err != nil {
 		panic(err)
 	}
 
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	var json JSON
+	c.BindJSON(&json)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour * time.Duration(1)).Unix(),
+		"iat": time.Now().Unix(),
+		"id":  json.ID,
+	})
+
+	tokenString, err := token.SignedString([]byte(keyData))
+	if err != nil {
+		panic(err)
+	}
+	c.JSON(200, gin.H{
+		"status": "OK",
+		"token":  tokenString,
+	})
+	return
+}
+
+// RequireTokenAuthenticationHandler : Tokenの検証
+func RequireTokenAuthenticationHandler(c *gin.Context) {
+
+	keyData, err := ioutil.ReadFile("./secret.key")
 	if err != nil {
 		panic(err)
 	}
 
-	if userName == "test" && passWord == "test" {
-		// create token
-		token := jwt.New(jwt.SigningMethodRS256)
+	token, err := request.ParseFromRequest(c.Request, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+		b := []byte(keyData)
+		return b, nil
+	})
 
-		// set claims
+	if err == nil {
 		claims := token.Claims.(jwt.MapClaims)
-		claims["name"] = "test"
-		claims["admin"] = true
-		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-		tokenString, err := token.SignedString(signKey)
-		if err != nil {
-			fmt.Println(err)
-		}
-		c.JSON(http.StatusOK, tokenString)
+		msg := fmt.Sprintf("こんにちは、「 %s 」さん", claims["id"])
+		c.JSON(200, gin.H{"message": msg})
+	} else {
+		c.JSON(401, gin.H{"error": fmt.Sprint(err)})
 	}
 }
