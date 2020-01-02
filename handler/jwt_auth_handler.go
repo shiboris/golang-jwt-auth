@@ -19,10 +19,10 @@ var (
 // LoginHandler : JWTの発行
 func LoginHandler(c *gin.Context) {
 
-	username := "test"
-	password := "test"
+	userName := c.Param("user_name")
+	passWord := c.Param("pass_word")
 
-	signBytes, err := ioutil.ReadFile("./demo.rsa")
+	signBytes, err := ioutil.ReadFile("../demo.rsa")
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +32,7 @@ func LoginHandler(c *gin.Context) {
 		panic(err)
 	}
 
-	if username == "test" && password == "test" {
+	if userName == "test" && passWord == "test" {
 		// create token
 		token := jwt.New(jwt.SigningMethodRS256)
 
