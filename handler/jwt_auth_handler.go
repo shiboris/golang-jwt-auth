@@ -22,7 +22,7 @@ func LoginHandler(c *gin.Context) {
 	userName := c.Param("user_name")
 	passWord := c.Param("pass_word")
 
-	signBytes, err := ioutil.ReadFile("./demo.rsa")
+	signBytes, err := ioutil.ReadFile("./demo.rsa.pkcs8")
 	if err != nil {
 		panic(err)
 	}

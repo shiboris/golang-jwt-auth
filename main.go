@@ -10,5 +10,5 @@ func main() {
 
 	r.POST("/tokenAuth", handler.LoginHandler)
 
-	r.Run(":8080")
+	r.Run(":8000")
 }
