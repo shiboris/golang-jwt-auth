@@ -1,9 +1,8 @@
 package main
 
 import (
-	".../handler"
-
 	"github.com/gin-gonic/gin"
+	"github.com/taniwhy/golang-jwt-auth-test/handler"
 )
 
 func main() {
