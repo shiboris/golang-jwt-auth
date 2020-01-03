@@ -1,13 +1,12 @@
-package handler
+package auth
 
 import (
 	"crypto/rsa"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,24 +48,10 @@ func LoginHandler(c *gin.Context) {
 	return
 }
 
-// RequireTokenAuthenticationHandler : Tokenの検証
-func RequireTokenAuthenticationHandler(c *gin.Context) {
-
-	keyData, err := ioutil.ReadFile("./secret.key")
-	if err != nil {
-		panic(err)
-	}
-
-	token, err := request.ParseFromRequest(c.Request, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
-		b := []byte(keyData)
-		return b, nil
-	})
-
-	if err == nil {
-		claims := token.Claims.(jwt.MapClaims)
-		msg := fmt.Sprintf("こんにちは、「 %s 」さん", claims["id"])
-		c.JSON(200, gin.H{"message": msg})
-	} else {
-		c.JSON(401, gin.H{"error": fmt.Sprint(err)})
+func sampleMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Println("before logic")
+		c.Next()
+		log.Println("after logic")
 	}
 }
